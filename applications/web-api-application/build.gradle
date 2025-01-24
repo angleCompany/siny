@@ -32,9 +32,9 @@ task jsonDoclet(type: Javadoc, dependsOn: compileJava) {
     options.docletpath = configurations.jsondoclet.files as List
     options.doclet = 'capital.scalable.restdocs.jsondoclet.ExtractDocumentationAsJsonDoclet'
     options.memberLevel = JavadocMemberLevel.PACKAGE
-    options.addStringOption("encoding","UTF-8");
-    options.addStringOption("charset","UTF-8");
-    options.addStringOption("docencoding","UTF-8");
+    options.addStringOption("encoding","UTF-8")
+    options.addStringOption("charset","UTF-8")
+    options.addStringOption("docencoding","UTF-8")
 }
 
 // 테스트 실행 후, snipperDir에 snippet(.adoc 파일들) 생성
