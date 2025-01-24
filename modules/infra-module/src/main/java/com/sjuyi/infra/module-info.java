@@ -1,0 +1,2 @@
+module infra.module.main {
+}

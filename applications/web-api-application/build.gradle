@@ -1,0 +1,63 @@
+apply plugin: 'application'
+
+ext {
+    snippetsDir = file("$buildDir/generated-snippets")  // snippet 이 생성될 디렉토리 지정
+    javadocJsonDir = file("$buildDir/generated-javadoc-json")   // javadoc-json 이 생성될 디렉토리 지정
+}
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    jsondoclet
+}
+
+dependencies {
+    
+    // Spring Auto REST Docs
+    testImplementation 'capital.scalable:spring-auto-restdocs-core:2.0.11'
+    jsondoclet "capital.scalable:spring-auto-restdocs-json-doclet-jdk9:2.0.11"
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+
+    implementation project(':modules:domain-module')
+    implementation project(':modules:infra-module')
+
+}
+
+
+// Java Source 코드에서 Javadoc 을 읽고, json 파일로 반환
+task jsonDoclet(type: Javadoc, dependsOn: compileJava) {
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.compileClasspath
+    destinationDir = javadocJsonDir
+    options.docletpath = configurations.jsondoclet.files as List
+    options.doclet = 'capital.scalable.restdocs.jsondoclet.ExtractDocumentationAsJsonDoclet'
+    options.memberLevel = JavadocMemberLevel.PACKAGE
+    options.addStringOption("encoding","UTF-8");
+    options.addStringOption("charset","UTF-8");
+    options.addStringOption("docencoding","UTF-8");
+}
+
+// 테스트 실행 후, snipperDir에 snippet(.adoc 파일들) 생성
+test {
+    useJUnitPlatform()
+
+    systemProperty 'org.springframework.restdocs.outputDir', snippetsDir
+    systemProperty 'org.springframework.restdocs.javadocJsonDir', javadocJsonDir
+
+    outputs.dir snippetsDir
+
+    dependsOn jsonDoclet
+}
+
+// src/docs/asciidoc/*.adoc 파일을 build/docs/asciidoc 에 *.html 파일로 변환
+asciidoctor {
+    inputs.dir snippetsDir
+    dependsOn test
+}
+
+bootJar {
+    dependsOn asciidoctor
+    archiveFileName = 'siny-web-api.jar'
+}
+
+jar { enabled = false }
