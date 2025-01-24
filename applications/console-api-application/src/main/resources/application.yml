@@ -1,0 +1,25 @@
+server:
+  port: 8090
+  server-header: console-api-application
+  shutdown: graceful
+  max-http-request-header-size: 40KB
+spring:
+  application:
+    name: console-api-application
+  threads:
+    virtual:
+      enabled: true
+  data:
+    redis:
+      url: redis://default:AW8ZAAIjcDFiNmFlZmYxOTNmYTI0NmEzYmM0MjY2NzEyMGJiNDA0ZnAxMA@apt-longhorn-28441.upstash.io:6379
+      host: apt-longhorn-28441.upstash.io
+      port: 6379
+      password: AW8ZAAIjcDFiNmFlZmYxOTNmYTI0NmEzYmM0MjY2NzEyMGJiNDA0ZnAxMA
+      ssl:
+        enabled: true
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 10
+          max-wait: 50

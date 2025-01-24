@@ -1,37 +1,113 @@
+buildscript {
+    ext {
+        springAutoRestDocsVersion = "2.0.11"
+        awsSdkVersion = "2.25.31"
+        mapstructVersion = "1.6.3"
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:3.4.2")
+    }
+}
+
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.1'
+    id 'org.springframework.boot' version '3.4.2'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '7.0.2'
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
-group = 'com.sjuyi'
-version = '0.0.1-SNAPSHOT'
+allprojects {
+    group = 'com.sjuyi'
+    version = '0.0.1'
+    sourceCompatibility = '21'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+    repositories {
+        mavenCentral()
     }
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
+static def isAppleSilicon(){
+    return System.getProperty("os.name") == "Mac OS X" && System.getProperty("os.arch") == "aarch64"
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'jacoco'
+    apply plugin: 'org.asciidoctor.jvm.convert'
+    apply plugin: 'com.diffplug.spotless'
+    dependencies {
+        // 기본 spring boot web gradle
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        runtimeOnly 'com.h2database:h2'
+
+        //log
+        implementation 'ch.qos.logback.contrib:logback-json-classic:0.1.5'
+        implementation 'ch.qos.logback.contrib:logback-jackson:0.1.5'
+
+        // archunit
+        testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+
+
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+        //mapstruct
+        implementation "org.mapstruct:mapstruct:$mapstructVersion"
+        annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.2.0"
+        annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+        testAnnotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+
+
+
+        //lombok gradle
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+        annotationProcessor 'org.projectlombok:lombok'
+        testImplementation 'org.projectlombok:lombok'
+
+        // 데이터 바인딩 gradle
+        implementation 'com.fasterxml.jackson.core:jackson-databind'
+        implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.1'
+
+
+        // aws gradle
+        implementation(platform("software.amazon.awssdk:bom:$awsSdkVersion"))
+        implementation 'software.amazon.awssdk:s3'
+        implementation 'software.amazon.awssdk:secretsmanager'
+        implementation 'software.amazon.awssdk:sts'
+
+        // 특정 DB client를 사용해야하기때문에 해당 위치에 기재.
+        runtimeOnly 'com.mysql:mysql-connector-j:8.2.0'
+        runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:2.7.11'
+
+        testImplementation 'org.junit.jupiter:junit-jupiter-api'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+        if (isAppleSilicon()) {
+            runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.110.Final:osx-aarch_64")
+        }
     }
-}
+    spotless {
+        java {
+            target("**/*.java")
+            importOrder()
+            removeUnusedImports()
+            googleJavaFormat("1.17.0").aosp()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.h2database:h2'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    repositories {
+        mavenCentral()
+    }
 }
 
 tasks.named('test') {

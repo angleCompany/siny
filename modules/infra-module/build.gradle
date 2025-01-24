@@ -1,0 +1,26 @@
+dependencies {
+
+    // db connector
+    // 여기다가 버전 명시 하면 스프링 프레임웍에 종속된 최신 버전도 같이 lib에 넣어서 문제 발생함.
+    // 확인이 필요.(특정 버전이 필요하지 않으면 버전 명시 하지 않는게 좋을듯함.)
+    // aurora mysql 연결시 aurora 파라미터 지원하는게 2.7.x 대 여서 특정 client 를 사용해야해서 문제 발생.
+    //runtimeOnly 'com.mysql:mysql-connector-j:8.2.0'
+    //runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:2.7.11'
+    // data 처리 gradle
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.apache.commons:commons-pool2'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+
+    implementation project(':modules:domain-module')
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar { enabled = false }
+jar { enabled = true }
